@@ -1,12 +1,13 @@
 Package: bmetenrichr
-Title: metabolite set enrichment analysis using bootstrapping of molecule isomers
+Title: metabolite set enrichment analysis with bootstrapping
 Version: 0.0.0.9000
 Authors@R: 
-    person("Martijn", "Molenaar", role = "cre",
+    person("Martijn", "Molenaar", role = "cre", email = "m.r.molenaar@protonmail.com",
            comment = c(ORCID = "0000-0001-5221-608X"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Description: metabolite set enrichment analysis using bootstrapping of molecule isomers.
+Imports: pbapply,
+Depends: ggplot2, dplyr
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
