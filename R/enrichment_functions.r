@@ -478,6 +478,19 @@ plotEnrichment <- function (object, ...) {
   UseMethod("plotEnrichment", object)
 }
 
+#' Plot bootstrap enrichment analysis
+#'
+#' @param object A bmetenrichr object after enrichment analysis.
+#' @param min.annotations An integer describing the minimal number of annotations each term should include
+#' @param q.value.cutoff A numeric between 0 and 1. Only terms with q-values lower than this value will be displayed.
+#' @param plotIDs A logical indicating whether term IDs should be displayed.
+#' @param by.statistic A character indicating how the x-axis will be arranged. Can be either 'ES' (enrichment score) or 'q.value'.
+#'
+#' @return A ggplot2 object.
+#' @examples
+#'
+#' plotEnrichment(myTestRun)
+#'
 #' @export
 plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.1, plotIDs = FALSE, by.statistic = 'ES'){
   options(dplyr.summarise.inform = FALSE)
@@ -609,6 +622,8 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
           theme(plot.title = element_text(face = "bold", hjust = 1), axis.title.x = element_text(face = "bold")
           )
       }
+  },{     ## else
+    stop("No valid plot-mode selected. Use  either `ES` or `q.value`")
   })
 
   return(enrichment_plot)
