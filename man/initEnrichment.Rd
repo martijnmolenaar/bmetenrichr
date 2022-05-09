@@ -21,7 +21,8 @@ initEnrichment(
 \item{scmatrix}{A numeric matrix of n metabolites (rows) and m cells or measurments (columns).}
 
 \item{annotations}{Either (i) a list of length n, with each element contains a vector of isomer names,
-or (ii) a vector of length n containing molecular formulas with ("C44H84NO8P.H") or without adduct ("C44H84NO8P").}
+or (ii) a vector of length n containing molecular formulas with ("C44H84NO8P.H") or without adduct ("C44H84NO8P").
+In the second case, bmetenrichr uses the CoreMetabolome, LIPIDMAPS, SwissLipids, and HMDB databases from METASPACE (https://metaspace2020.eu/) to generate an annotation list automatically.}
 
 \item{annotation.weights}{An optional list of length n, each element contains a vector of isomer weights. Only when annotations is provided as list.}
 

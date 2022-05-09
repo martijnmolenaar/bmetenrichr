@@ -135,6 +135,7 @@ ks.test.signed <- function (x, y, ..., alternative = c("two.sided", "less", "gre
 #' @param scmatrix A numeric matrix of n metabolites (rows) and m cells or measurments (columns).
 #' @param annotations Either (i) a list of length n, with each element contains a vector of isomer names,
 #' or (ii) a vector of length n containing molecular formulas with ("C44H84NO8P.H") or without adduct ("C44H84NO8P").
+#' In the second case, bmetenrichr uses the CoreMetabolome, LIPIDMAPS, SwissLipids, and HMDB databases from METASPACE (https://metaspace2020.eu/) to generate an annotation list automatically.
 #' @param annotation.weights An optional list of length n, each element contains a vector of isomer weights. Only when annotations is provided as list.
 #' @param conditions A vector of length m with condition identifiers.
 #' @param include An optional logical vector of length n indicating whether to include the annotations in the analysis.
