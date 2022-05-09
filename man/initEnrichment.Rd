@@ -27,17 +27,23 @@ or (ii) a vector of length n containing molecular formulas with ("C44H84NO8P.H")
 
 \item{conditions}{A vector of length m with condition identifiers.}
 
-\item{include}{A logical vector of length n indicating whether to include the annotations in the analysis.}
+\item{include}{An optional logical vector of length n indicating whether to include the annotations in the analysis.}
+
+\item{pathway}{A named list with character vectors of metabolite names. When default 'LION' is used, bmetenrichr uses the preset LION metabolite set.}
+
+\item{termsOfInterest}{A character containing 'selection' (for default LION-term selection), 'all', or a vector of term names (see 'pathway').}
 
 \item{condition.x}{first condition identifier for pairwise comparison.}
 
 \item{condition.y}{second condition identifier for pairwise comparison.}
+
+\item{ranking.by}{A character of either 't.test' or 'wilcox.test', to rank metabolites for the respective statistic.}
 }
 \value{
 An object of class bmetenrich.
 }
 \description{
-Generate bmetenrichr enrichment object
+initEnrichment() creates object to perform bootstrapping metabolite set enrichment analysis
 }
 \examples{
 myTestRun <-

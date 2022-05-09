@@ -130,14 +130,20 @@ ks.test.signed <- function (x, y, ..., alternative = c("two.sided", "less", "gre
 
 #' Generate bmetenrichr enrichment object
 #'
+#' initEnrichment() creates object to perform bootstrapping metabolite set enrichment analysis
+#'
 #' @param scmatrix A numeric matrix of n metabolites (rows) and m cells or measurments (columns).
 #' @param annotations Either (i) a list of length n, with each element contains a vector of isomer names,
 #' or (ii) a vector of length n containing molecular formulas with ("C44H84NO8P.H") or without adduct ("C44H84NO8P").
 #' @param annotation.weights An optional list of length n, each element contains a vector of isomer weights. Only when annotations is provided as list.
 #' @param conditions A vector of length m with condition identifiers.
-#' @param include A logical vector of length n indicating whether to include the annotations in the analysis.
+#' @param include An optional logical vector of length n indicating whether to include the annotations in the analysis.
 #' @param condition.x first condition identifier for pairwise comparison.
 #' @param condition.y second condition identifier for pairwise comparison.
+#' @param pathway A named list with character vectors of metabolite names. When default 'LION' is used, bmetenrichr uses the preset LION metabolite set.
+#' @param termsOfInterest A character containing 'selection' (for default LION-term selection), 'all', or a vector of term names (see 'pathway').
+#' @param ranking.by A character of either 't.test' or 'wilcox.test', to rank metabolites for the respective statistic.
+#'
 #' @return An object of class bmetenrich.
 #' @examples
 #' myTestRun <-
@@ -230,7 +236,7 @@ initEnrichment <- function(scmatrix,
   }
 
 
-  if(termsOfInterest == "selection"){
+  if(termsOfInterest == "selection" & pathway == "LION"){
 
     ## filter pathway_list by terms of interest
     # termsSelection <- read.csv(file = 'data-raw/LION_selection.csv')
@@ -240,8 +246,14 @@ initEnrichment <- function(scmatrix,
     termsSelection <- names(pathway_list)
     ## no filtering required
 
+  } else if(termsOfInterest == "selection" & pathway != "LION"){
+
+    stop("termsOfInterest = 'selection' is only valid for pathway = 'LION'")
   } else {
-    stop("there no other LION-term selections supported yet")
+
+    pathway_list <- pathway_list[termsOfInterest]
+    termsSelection <- names(pathway_list)
+
   }
 
 
@@ -277,6 +289,20 @@ print.bmetenrich <- function(object){
   cat("condition.y:", object$condition.y,"\n")
 }
 
+#' Rank metabolites for bmetenrichr enrichment object
+#'
+#' rankScore() ranks metabolites of bmetenrichr object to perform bootstrapping metabolite set enrichment analysis
+#'
+#' @param object A bmetenrichr object.
+#' @param ranking.by A character of either 't.test' (default) or 'wilcox.test', to rank metabolites using the respective statistic.
+#'
+#' @return An object of class bmetenrich.
+#'
+#' @examples
+#' myTestRun <-
+#' rankScore(object = myTestRun, ranking.by = 't.test')
+#'
+#'
 #' @export
 rankScore <- function (object, ...) {
   UseMethod("rankScore", object)
@@ -339,7 +365,20 @@ rankScore.bmetenrich <- function(object,
 
 
 
-
+#' Perform metabolite set enrichment for bmetenrichr enrichment objects
+#'
+#' calcEnrichment() ranks metabolites of bmetenrichr object to perform bootstrapping metabolite set enrichment analysis
+#'
+#' @param object A bmetenrichr object.
+#' @param n A integeter describing the number of bootstraps (default = 50).
+#'
+#' @return An object of class bmetenrich.
+#'
+#' @examples
+#' myTestRun <- calcEnrichment(object = myTestRun, ranking.by = 't.test')
+#'
+#'
+#' @export
 
 #' @export
 calcEnrichment <- function (object, ...) {
@@ -470,14 +509,6 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
 
 }
 
-
-
-
-#' @export
-plotEnrichment <- function (object, ...) {
-  UseMethod("plotEnrichment", object)
-}
-
 #' Plot bootstrap enrichment analysis
 #'
 #' @param object A bmetenrichr object after enrichment analysis.
@@ -491,6 +522,12 @@ plotEnrichment <- function (object, ...) {
 #'
 #' plotEnrichment(myTestRun)
 #'
+#' @export
+plotEnrichment <- function (object, ...) {
+  UseMethod("plotEnrichment", object)
+}
+
+
 #' @export
 plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.1, plotIDs = FALSE, by.statistic = 'ES'){
   options(dplyr.summarise.inform = FALSE)
@@ -630,7 +667,19 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
 
 }
 
-
+#' Set conditions for enrichment analysis
+#'
+#' @param object A bmetenrichr object.
+#' @param condition.x A optional character describing the reference condition.
+#' @param condition.y A optional character describing condition to interest.
+#'
+#' @return An object of class bmetenrich.
+#'
+#' @return An object of class bmetenrich.
+#' @examples
+#'
+#' setConditions(myTestRun, condition.x = 'CON', condition.y = "TREATMENT")
+#'
 #' @export
 setConditions <- function (object, ...) {
   UseMethod("setConditions", object)
@@ -665,5 +714,61 @@ setConditions.bmetenrich <- function(object, condition.x = NULL, condition.y = N
 
 }
 
+#' Export bootstrap enrichment analysis
+#'
+#' @param object A bmetenrichr object after enrichment analysis.
+#' @param min.annotations An integer describing the minimal number of annotations each term should include (default = 2).
+#' @param q.value.cutoff A numeric between 0 and 1. Only terms with q-values lower than this value will be displayed (default = 0.5).
+#'
+#' @return A data.frame
+#' @examples
+#'
+#' enrichmentTable(myTestRun)
+#'
+#' @export
+enrichmentTable <- function (object, ...) {
+  UseMethod("enrichmentTable", object)
+}
+
+
+#' @export
+enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.5){
+  options(dplyr.summarise.inform = FALSE)
+
+  enrichment_analysis <- object$enrichment_analysis
+
+
+  enrichment_analysis <-
+    enrichment_analysis %>% group_by(bootstrap) %>%
+    mutate(q.value = p.adjust(p.value, method = "fdr"))  %>%
+    group_by(LION_ID, LION_name) %>%
+    summarise(n = median(n, na.rm = T),
+              ES_median = median(ES, na.rm = T),
+              ES_sd = sd(ES, na.rm = T),
+              p.value_median = median(p.value, na.rm = T),
+              p.value_sd = sd(p.value, na.rm = T),
+              q.value_median = median(q.value, na.rm = T),
+              q.value_sd = sd(q.value, na.rm = T))
+
+  enrichment_analysis <-
+      enrichment_analysis %>% mutate(
+        LION_name = factor(
+          LION_name,
+          levels = enrichment_analysis %>% arrange(ES_median) %>% pull(LION_name)
+        ))
+
+  enrichment_analysis <-
+    enrichment_analysis %>%
+    ### here now LION-terms are not filtered by grepl and the names, that's already done by the terms_of_interest step
+    filter(n > min.annotations,                                ## only show LION-term with 2 or more molecules, this is still important
+           q.value_median < q.value.cutoff,
+           LION_ID != "all"  )   %>%             ## remove LION term 'all')
+    ungroup()
+
+
+
+  return(enrichment_analysis)
+
+}
 
 
