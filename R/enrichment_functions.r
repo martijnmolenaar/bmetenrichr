@@ -403,6 +403,8 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
   cat("Bootstrapping...")
   cat("\n")
 
+  #browser()
+
   bootstrapped_sublist <- pbapply::pbsapply(seq(n),       ## bootstrapping
                                  function(n_i) {
                                    sapply(seq(dim(object$scmatrix)[1]), function(row_number_i) {
