@@ -646,6 +646,7 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
 
   enrichment_analysis <- object$enrichment_analysis$table
 
+  enrichment_analysis <- enrichment_analysis %>% filter(!is.na(p.value), !is.na(ES))
 
   enrichment_analysis <-
     enrichment_analysis %>% group_by(LION_ID) %>%
@@ -656,22 +657,12 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
   }
 
 
-
   enrichment_analysis <-
     enrichment_analysis %>% group_by(LION_ID) %>%
     mutate(p.value_median = median(p.value, na.rm = T),
            q.value_median = p.adjust(p.value, method = "fdr"))
 
   switch(by.statistic, 'ES' = {
-
-    enrichment_analysis <-
-      enrichment_analysis %>% mutate(
-        LION_name = factor(
-          LION_name,
-          levels = enrichment_analysis %>% group_by(LION_ID, LION_name) %>%
-            summarise(ES_median = median(ES, na.rm = T)) %>% arrange(ES_median) %>% pull(LION_name)
-        ))
-
 
     enrichment_plot <-
       enrichment_analysis %>%
@@ -680,7 +671,7 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
              q.value_median < q.value.cutoff,
              LION_ID != "all") %>%                 ## remove LION term 'all'
       {ggplot(data = .,
-              aes(x = LION_name,
+              aes(x = reorder(LION_name, ES),
                   y = ES,
                   fill = sapply(q.value_median, function(i){  min(10,-log(i, base = 10))})
               ))+
@@ -691,23 +682,14 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
                                q.value_median = q.value_median[1]),
                    color = NA,                       stat = "identity")+
           geom_jitter(size = .1, width = .1, color = "gray30")+
-          #geom_text(data = .  %>% group_by(LION_ID) %>%
-          #            mutate(ES_median = median(ES,na.rm = T),
-          #                   ES_SD =  sd(ES,na.rm = T)),
-          #          aes(label = paste0("n=",as.integer(n)),
-          #              y = ES_median+ES_SD+(max(ES_median)*.1)), size = 3)+
+
           scale_fill_gradient2(low = "gray", mid = "gray",high = "red",          ## scale from gray to red, with 10 as max
                                midpoint = -log(0.05, base = 10),limits = c(0,10))+
           geom_hline(yintercept = 0, linetype = 3)+
 
           labs(x = "", y = "enrichment score", fill = expression(-LOG[10]~italic(q)~value),
-               #subtitle =  expression(object$condition.x~italic(vs.)~object$condition.y)
                subtitle =  bquote(.(object$enrichment_analysis$comparison[2])~italic(vs.)~.(object$enrichment_analysis$comparison[1]))
 
-               # caption = paste("nDB = ",object$condition.x,
-               #                "; #annotations = ",dim(dataset)[1],
-               #                "; FDR cutoff = ",fdr_cutoff,
-               #               "; off-sample filtering = ",ifelse(filter_offSample,"yes",'no'))
           )+
           theme_minimal()+
           theme(plot.title = element_text(face = "bold", hjust = 1), axis.title.x = element_text(face = "bold")
@@ -716,16 +698,10 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
   }, 'q.value' = {
 
     enrichment_analysis <-
-      enrichment_analysis %>% mutate(
-        LION_name = factor(
-          LION_name,
-          levels = enrichment_analysis %>% group_by(LION_ID, LION_name) %>%
-            summarise(p.value_median = median(p.value, na.rm = T)) %>% arrange(desc(p.value_median)) %>% pull(LION_name)
-        ))
-
-    enrichment_analysis <-
       enrichment_analysis %>% ungroup() %>% group_by(bootstrap) %>%
       mutate(q.value = p.adjust(p = p.value, method = "fdr"))
+
+
 
     enrichment_plot <-
       enrichment_analysis %>%
@@ -737,34 +713,26 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
       mutate(ES = median(ES, na.rm = T),
              up_down = factor(ifelse(sign(ES)>0, "UP","DOWN"), levels = c("UP","DOWN"))) %>%
       {ggplot(data = .,
-              aes(x = LION_name,
-                  y = -log(`q.value`, base = 10),
-                  fill = sapply(q.value_median, function(i){  min(10,-log(i, base = 10))})
+              aes(x = reorder(LION_name, desc(-log(`q.value`, base = 10))),
+                  y = -log(`q.value`, base = 10)
               ))+
 
           coord_flip()+
-          geom_bar(data = .  %>% group_by(LION_name,up_down) %>%
-                     summarise(q.value = median(`q.value`,na.rm = T),
-                               q.value_median = q.value_median[1]),
-                   color = NA,                       stat = "identity")+
+           geom_bar(data = . %>% group_by(LION_name) %>%
+                     summarise(up_down = up_down[1],
+                               q.value = median(-log(`q.value`, base = 10)),
+                               q.value_clipped = ifelse(q.value > 10, 10, q.value)),
+                   aes(y = q.value, fill = q.value_clipped), stat = "identity"
+
+                   )+
           geom_jitter(size = .1, width = .1, color = "gray30")+
           facet_grid(up_down~.,  space = "free", scales = "free")+
-          #geom_text(data = .  %>% group_by(LION_ID) %>%
-          #            mutate(ES_median = median(ES,na.rm = T),
-          #                   ES_SD =  sd(ES,na.rm = T)),
-          #          aes(label = paste0("n=",as.integer(n)),
-          #              y = ES_median+ES_SD+(max(ES_median)*.1)), size = 3)+
+
           scale_fill_gradient2(low = "gray", mid = "gray",high = "red",          ## scale from gray to red, with 10 as max
                                midpoint = -log(0.05, base = 10),limits = c(0,10))+
           geom_hline(yintercept = c(0,-log(0.05,base = 10)), linetype = 3)+
           labs(x = "", y = expression(-LOG[10]~italic(q)~value), fill = expression(-LOG[10]~italic(q)~value),
-               #subtitle =  expression(object$condition.x~italic(vs.)~object$condition.y)
                subtitle =  bquote(.(object$condition.y)~italic(vs.)~.(object$condition.x))
-
-               # caption = paste("nDB = ",object$condition.x,
-               #                "; #annotations = ",dim(dataset)[1],
-               #                "; FDR cutoff = ",fdr_cutoff,
-               #               "; off-sample filtering = ",ifelse(filter_offSample,"yes",'no'))
           )+
           theme_minimal()+
           theme(plot.title = element_text(face = "bold", hjust = 1), axis.title.x = element_text(face = "bold")
