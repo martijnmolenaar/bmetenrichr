@@ -193,15 +193,26 @@ initEnrichment <- function(scmatrix,
     }
   }
 
+  if (!is.null(condition.x) ){
+    if(!any(condition.x == unique(conditions))){
+      stop("submitted condition.x not found in dataset")
+    }
+  }
+
+  if (!is.null(condition.y) ){
+    if(!any(condition.y == unique(conditions))){
+      stop("submitted condition.y not found in dataset")
+    }
+  }
+
 
   if (length(pathway) == 1) {
     if (pathway == "LION") {
       pathway_list <- pathway_list_LION
-      #  jsonlite::read_json(path = 'data-raw/all_databases.json', simplifyVector = TRUE)
 
-      #LUT <- read.csv(file = 'data-raw/LION-LUT.csv')
-
-    } else {      stop("pathway input is not in the right format")    }
+    } else {
+      stop("pathway input is not in the right format")
+      }
   } else {
     ## pathway is longer than length 1
     if (is.list(pathway)) {
@@ -322,6 +333,9 @@ rankScore.bmetenrich <- function(object,
     object$ranking.by <- ranking.by
   }
 
+  if (is.null(object$condition.x) | is.null(object$condition.y)){
+    stop("No valid conditions given. Use setConditions().")
+  }
 
 
 
