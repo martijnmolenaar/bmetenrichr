@@ -784,7 +784,7 @@ enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cuto
            LION_ID != "all"  )   %>%             ## remove LION term 'all')
     ungroup() %>% as.data.frame
 
-
+  attr(enrichment_analysis, "comparison") <- paste0(object$enrichment_analysis$comparison[2], " vs. ",object$enrichment_analysis$comparison[1])
 
   return(enrichment_analysis)
 
