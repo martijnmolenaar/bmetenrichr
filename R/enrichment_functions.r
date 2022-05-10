@@ -139,6 +139,7 @@ ks.test.signed <- function (x, y, ..., alternative = c("two.sided", "less", "gre
 #' @param annotation.weights An optional list of length n, each element contains a vector of isomer weights. Only when annotations is provided as list.
 #' @param isobars A logical indicating whether to include isobars and isomers (default = FALSE), FALSE will only include isomers.
 #' Will be neglected when the annotations are provided as list.
+#' @param mass_range_ppm A numeric indicating the mass range in ppm (default: mass_range_ppm = 3). Molecular formulas + adducts within this range will be treated as isobars. Only required when isobars = TRUE.
 #' @param polarization_mode A character with either 'positive' (default) or 'negative'. Only required when isobars = TRUE. When set to 'positive', included adducts are '+H', '+Na', and '+K'.
 #' When set to 'negative', included adducts are '-H', '+Cl'.
 #' @param conditions A vector of length m with condition identifiers.
@@ -165,6 +166,7 @@ initEnrichment <- function(scmatrix,
                                annotations,
                                annotation.weights = NULL,
                                isobars = FALSE,
+                               mass_range_ppm = 3,
                                polarization_mode = "positive",
                                conditions,
                                include = NULL,
@@ -252,6 +254,10 @@ initEnrichment <- function(scmatrix,
     ## when vector of moceular formulas is provided, generate list with molecular names
 
     annotation_formulas <- gsub("\\..+$","",annotations)   ## remove adduct
+    annotation_formulas_adduct <- annotations
+    annotation_adduct <- gsub("^.+\\.","",annotation_formulas_adduct)
+
+    cat("\nParsing isomers...\n")
 
     annotation_list <-
     lapply(annotation_formulas, function(annotation_formula_i){
@@ -262,6 +268,66 @@ initEnrichment <- function(scmatrix,
   } else {
     stop("annotations not in the right format")
   }
+
+   if(isobars & pathway == "LION"){
+
+
+     cat("\nParsing potential isobars...\n")
+
+     switch(polarization_mode,
+            'positive' = {
+              col_name <- paste0("pos",annotation_adduct)
+
+              exact_masses_slim <- exact_masses[,c(1,which(grepl("pos",colnames(exact_masses))))]
+              colnames(exact_masses_slim) <- gsub("^pos","",colnames(exact_masses_slim))
+              exact_masses_slim <- exact_masses_slim %>% tidyr::pivot_longer(cols = -1, values_to = "mass", names_to = "adduct")
+              exact_masses_slim$formula_adduct <- paste0(exact_masses_slim$formula,".",exact_masses_slim$adduct)
+              },
+            'negative' = {
+              col_name <- paste0("neg",annotation_adduct)
+
+              exact_masses_slim <- exact_masses[,c(1,which(grepl("neg",colnames(exact_masses))))]
+              colnames(exact_masses_slim) <- gsub("^neg","",colnames(exact_masses_slim))
+              exact_masses_slim <- exact_masses_slim %>% tidyr::pivot_longer(cols = -1, values_to = "mass", names_to = "adduct")
+              exact_masses_slim$formula_adduct <- paste0(exact_masses_slim$formula,".",exact_masses_slim$adduct)
+              })
+
+     exact_masses_annotations <-
+       mapply(annotation_formulas_i = annotation_formulas,
+              col_name_i = col_name,
+              function(annotation_formulas_i, col_name_i) {
+                mass <-
+                  exact_masses[exact_masses$formula == annotation_formulas_i, col_name_i]
+                if (length(mass) == 0) {
+                  mass = NA
+                }
+                mass
+
+              })
+
+     names(exact_masses_annotations) <- annotation_formulas_adduct
+
+     isobars_list <-
+     sapply(exact_masses_annotations, function(mass_i){
+       if(is.na(mass_i)){
+         character(0)
+       } else {
+         exact_masses_slim$formula_adduct[
+           between(exact_masses_slim$mass,
+                   left = mass_i - (mass_range_ppm * mass_i / 1e6),
+                   right = mass_i + (mass_range_ppm * mass_i / 1e6))]
+       }
+     }, simplify = F)
+
+     ## remove self isobars
+     isobars_list <-
+     sapply(names(isobars_list), function(i){
+       i[!isobars_list[[i]] %in% i]
+     }, simplify = F)
+
+   } else {   ## isbars == FALSE
+     isobars_list <- NULL
+   }
 
 
   if(termsOfInterest == "selection" & pathway == "LION"){
@@ -290,6 +356,7 @@ initEnrichment <- function(scmatrix,
   list(scmatrix = scmatrix,
        annotations = annotation_list,
        annotation.weights = annotation.weights,
+       isobars_list = isobars_list,
        conditions = conditions,
        include = include,
        pathway = if(length(pathway) == 1){"LION"}else{"custom"},

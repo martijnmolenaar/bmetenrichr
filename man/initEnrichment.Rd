@@ -8,6 +8,9 @@ initEnrichment(
   scmatrix,
   annotations,
   annotation.weights = NULL,
+  isobars = FALSE,
+  mass_range_ppm = 3,
+  polarization_mode = "positive",
   conditions,
   include = NULL,
   pathway = "LION",
@@ -25,6 +28,14 @@ or (ii) a vector of length n containing molecular formulas with ("C44H84NO8P.H")
 In the second case, bmetenrichr uses the CoreMetabolome, LIPIDMAPS, SwissLipids, and HMDB databases from METASPACE (https://metaspace2020.eu/) to generate an annotation list automatically.}
 
 \item{annotation.weights}{An optional list of length n, each element contains a vector of isomer weights. Only when annotations is provided as list.}
+
+\item{isobars}{A logical indicating whether to include isobars and isomers (default = FALSE), FALSE will only include isomers.
+Will be neglected when the annotations are provided as list.}
+
+\item{mass_range_ppm}{A numeric indicating the mass range in ppm (default: mass_range_ppm = 3). Molecular formulas + adducts within this range will be treated as isobars. Only required when isobars = TRUE.}
+
+\item{polarization_mode}{A character with either 'positive' (default) or 'negative'. Only required when isobars = TRUE. When set to 'positive', included adducts are '+H', '+Na', and '+K'.
+When set to 'negative', included adducts are '-H', '+Cl'.}
 
 \item{conditions}{A vector of length m with condition identifiers.}
 
