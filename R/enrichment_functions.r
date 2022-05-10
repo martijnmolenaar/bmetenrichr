@@ -193,7 +193,7 @@ initEnrichment <- function(scmatrix,
     if(!polarization_mode %in% c('positive','negative')){
       stop("polarization_mode should be either 'positive' or 'negative'")
     } else {
-      message(paste0("set polarization_mode is", polarization_mode))
+      message(paste0("polarization_mode is: ", polarization_mode))
     }
   }
 
@@ -272,7 +272,7 @@ initEnrichment <- function(scmatrix,
    if(isobars & pathway == "LION"){
 
 
-     cat("\nParsing potential isobars...\n")
+     cat("Parsing potential isobars...\n\n")
 
      switch(polarization_mode,
             'positive' = {
@@ -319,11 +319,21 @@ initEnrichment <- function(scmatrix,
        }
      }, simplify = F)
 
+     isobars_list[sapply(isobars_list, length) > 1]
+
      ## remove self isobars
      isobars_list <-
      sapply(names(isobars_list), function(i){
-       i[!isobars_list[[i]] %in% i]
+       isobars_list[[i]][!isobars_list[[i]] %in% i]
      }, simplify = F)
+
+
+     annotation_list <-
+       lapply(seq_along(annotation_formulas), function(i){
+         c(isomer = annotation_list[[i]],
+           isobar = metaspace_databases$name[metaspace_databases$formula %in% gsub("\\..+$","",isobars_list[[i]])])
+
+       })
 
    } else {   ## isbars == FALSE
      isobars_list <- NULL
@@ -500,7 +510,6 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
   cat("Bootstrapping...")
   cat("\n")
 
-  #browser()
 
   bootstrapped_sublist <- pbapply::pbsapply(seq(n),       ## bootstrapping
                                  function(n_i) {
