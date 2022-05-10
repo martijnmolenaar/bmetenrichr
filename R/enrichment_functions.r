@@ -137,6 +137,10 @@ ks.test.signed <- function (x, y, ..., alternative = c("two.sided", "less", "gre
 #' or (ii) a vector of length n containing molecular formulas with ("C44H84NO8P.H") or without adduct ("C44H84NO8P").
 #' In the second case, bmetenrichr uses the CoreMetabolome, LIPIDMAPS, SwissLipids, and HMDB databases from METASPACE (https://metaspace2020.eu/) to generate an annotation list automatically.
 #' @param annotation.weights An optional list of length n, each element contains a vector of isomer weights. Only when annotations is provided as list.
+#' @param isobars A logical indicating whether to include isobars and isomers (default = FALSE), FALSE will only include isomers.
+#' Will be neglected when the annotations are provided as list.
+#' @param polarization_mode A character with either 'positive' (default) or 'negative'. Only required when isobars = TRUE. When set to 'positive', included adducts are '+H', '+Na', and '+K'.
+#' When set to 'negative', included adducts are '-H', '+Cl'.
 #' @param conditions A vector of length m with condition identifiers.
 #' @param include An optional logical vector of length n indicating whether to include the annotations in the analysis.
 #' @param condition.x first condition identifier for pairwise comparison.
@@ -160,6 +164,8 @@ ks.test.signed <- function (x, y, ..., alternative = c("two.sided", "less", "gre
 initEnrichment <- function(scmatrix,
                                annotations,
                                annotation.weights = NULL,
+                               isobars = FALSE,
+                               polarization_mode = "positive",
                                conditions,
                                include = NULL,
                                pathway = "LION",
@@ -177,6 +183,16 @@ initEnrichment <- function(scmatrix,
   }
   if (dim(scmatrix)[2] !=  length(conditions)){
     stop("single-cell matrix and conditions do not have the same length")
+  }
+  if (isobars & is.list(annotations)){
+    stop("isobars = TRUE in combination with a custom list of annotations is not supported")
+  }
+  if(isobars){
+    if(!polarization_mode %in% c('positive','negative')){
+      stop("polarization_mode should be either 'positive' or 'negative'")
+    } else {
+      message(paste0("set polarization_mode is", polarization_mode))
+    }
   }
 
 
