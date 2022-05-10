@@ -521,7 +521,9 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
   enrichment_analysis$LION_name <-                    ## match LION name to LION ID
     object$LUT$name[match(enrichment_analysis$LION_ID, object$LUT$ID)]
 
-  object$enrichment_analysis <- enrichment_analysis
+  object$enrichment_analysis <- list(table = enrichment_analysis,
+                                     comparison = object$rankings$comparison)
+
   return(object)
 
 }
@@ -550,7 +552,7 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
   options(dplyr.summarise.inform = FALSE)
 
 
-  enrichment_analysis <- object$enrichment_analysis
+  enrichment_analysis <- object$enrichment_analysis$table
 
 
   enrichment_analysis <-
@@ -608,7 +610,7 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
 
           labs(x = "", y = "enrichment score", fill = expression(-LOG[10]~italic(q)~value),
                #subtitle =  expression(object$condition.x~italic(vs.)~object$condition.y)
-               subtitle =  bquote(.(object$condition.y)~italic(vs.)~.(object$condition.x))
+               subtitle =  bquote(.(object$enrichment_analysis$comparison[2])~italic(vs.)~.(object$enrichment_analysis$comparison[1]))
 
                # caption = paste("nDB = ",object$condition.x,
                #                "; #annotations = ",dim(dataset)[1],
@@ -752,7 +754,7 @@ enrichmentTable <- function (object, ...) {
 enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.5){
   options(dplyr.summarise.inform = FALSE)
 
-  enrichment_analysis <- object$enrichment_analysis
+  enrichment_analysis <- object$enrichment_analysis$table
 
 
   enrichment_analysis <-
@@ -780,7 +782,7 @@ enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cuto
     filter(n > min.annotations,                                ## only show LION-term with 2 or more molecules, this is still important
            q.value_median < q.value.cutoff,
            LION_ID != "all"  )   %>%             ## remove LION term 'all')
-    ungroup()
+    ungroup() %>% as.data.frame
 
 
 
