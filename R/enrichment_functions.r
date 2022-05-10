@@ -610,6 +610,7 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
       }, simplify = F) %>% bind_rows()
     },simplify = F) %>% bind_rows()
 
+
   enrichment_analysis$LION_name <-                    ## match LION name to LION ID
     object$LUT$name[match(enrichment_analysis$LION_ID, object$LUT$ID)]
 
@@ -642,7 +643,6 @@ plotEnrichment <- function (object, ...) {
 #' @export
 plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.1, plotIDs = FALSE, by.statistic = 'ES'){
   options(dplyr.summarise.inform = FALSE)
-
 
   enrichment_analysis <- object$enrichment_analysis$table
 
