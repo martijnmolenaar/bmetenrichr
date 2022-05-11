@@ -167,10 +167,12 @@ myTestRun <- calcEnrichment(myTestRun, n = 100)
 
 ## example of the annotations, that now also include isobars
 
-myTestRun$annotations[[sample(which(sapply(myTestRun$isobars_list, length) > 1), size = 1)]][1:10]
+myTestRun$annotations[[
+  sample(which(sapply(myTestRun$isobars_list, length) > 1), size = 1)]][1:10]
 
 ## plot enrichment analysis, with q.values on x-axis, and with LION IDs
 
-plotEnrichment(myTestRun, min.annotations = 5, q.value.cutoff = .05, plotIDs = T, by.statistic = "q.value")
+plotEnrichment(myTestRun, min.annotations = 5, q.value.cutoff = .05, 
+               by.statistic = "q.value")
 ```
 
