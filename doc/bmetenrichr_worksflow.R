@@ -15,7 +15,7 @@ if(!("devtools" %in% rownames(installed.packages()))){
 
 ## install bmetenrichr if not installed
 if(!("bmetenrichr" %in% rownames(installed.packages()))){
-   devtools::install_github(repo = "martijnmolenaar/bmetenrichr")
+   devtools::install_github(repo = "martijnmolenaar/bmetenrichr", build_vignettes = TRUE)
 }
 
 library(bmetenrichr)
