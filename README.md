@@ -1,6 +1,6 @@
 # bmetenrichr
 
-## metabolite set enrichment using bootstrapping, for single-cell metabolimics data
+## metabolite set enrichment using bootstrapping, for single-cell metabolomics data
 
 This R-package aims to perform metabolite set enrichment analysis (MSEA) on single-cell metabolomics datasets.
 In contrast to bulk-metabolomics, metabolite annotation is often more ambiguous with fully resolved molecular structures.

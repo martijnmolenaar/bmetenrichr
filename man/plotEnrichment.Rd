@@ -15,7 +15,8 @@ plotEnrichment(object, ...)
 
 \item{plotIDs}{A logical indicating whether term IDs should be displayed.}
 
-\item{by.statistic}{A character indicating how the x-axis will be arranged. Can be either 'ES' (enrichment score) or 'q.value'.}
+\item{by.statistic}{A character indicating how the x-axis will be arranged.
+Can be either 'ES' (enrichment score) or 'q.value' (default).}
 }
 \value{
 A ggplot2 object.

@@ -18,7 +18,7 @@ An object of class bmetenrich.
 calcEnrichment() ranks metabolites of bmetenrichr object to perform bootstrapping metabolite set enrichment analysis
 }
 \examples{
-myTestRun <- calcEnrichment(object = myTestRun, ranking.by = 't.test')
+myTestRun <- calcEnrichment(object = myTestRun, n = 100)
 
 
 }

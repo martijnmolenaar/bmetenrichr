@@ -483,7 +483,7 @@ rankScore.bmetenrich <- function(object,
 #' @return An object of class bmetenrich.
 #'
 #' @examples
-#' myTestRun <- calcEnrichment(object = myTestRun, ranking.by = 't.test')
+#' myTestRun <- calcEnrichment(object = myTestRun, n = 100)
 #'
 #'
 #' @export
@@ -581,6 +581,7 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
   }, simplify = F)
 
   pathway_list_slim <- pathway_list_slim[sapply(pathway_list_slim, length) > 0]
+  object$pathway_list <- pathway_list_slim
 
   ## perform enrichment
   cat("\n")
@@ -595,6 +596,12 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
           data.frame(LION_ID = term,
                      bootstrap = bootstrap_i,
                      n = 0,
+                     ES = NA,
+                     p.value = NA)
+        } else if (all(members_logi)){
+          data.frame(LION_ID = term,
+                     bootstrap = bootstrap_i,
+                     n = sum(members_logi),
                      ES = NA,
                      p.value = NA)
         } else {
@@ -627,7 +634,8 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
 #' @param min.annotations An integer describing the minimal number of annotations each term should include
 #' @param q.value.cutoff A numeric between 0 and 1. Only terms with q-values lower than this value will be displayed.
 #' @param plotIDs A logical indicating whether term IDs should be displayed.
-#' @param by.statistic A character indicating how the x-axis will be arranged. Can be either 'ES' (enrichment score) or 'q.value'.
+#' @param by.statistic A character indicating how the x-axis will be arranged.
+#' Can be either 'ES' (enrichment score) or 'q.value' (default).
 #'
 #' @return A ggplot2 object.
 #' @examples
@@ -641,7 +649,7 @@ plotEnrichment <- function (object, ...) {
 
 
 #' @export
-plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.1, plotIDs = FALSE, by.statistic = 'ES'){
+plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.1, plotIDs = FALSE, by.statistic = 'q.value'){
   options(dplyr.summarise.inform = FALSE)
 
   enrichment_analysis <- object$enrichment_analysis$table
