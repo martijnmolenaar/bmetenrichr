@@ -656,7 +656,6 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
   options(dplyr.summarise.inform = FALSE)
 
   enrichment_analysis <- object$enrichment_analysis$table
-
   enrichment_analysis <- enrichment_analysis %>% filter(!is.na(p.value), !is.na(ES))
 
   enrichment_analysis <-
@@ -675,12 +674,19 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
 
   switch(by.statistic, 'ES' = {
 
-    enrichment_plot <-
-      enrichment_analysis %>%
+    enrichment_analysis <-
+    enrichment_analysis %>%
       ### here now LION-terms are not filtered by grepl and the names, that's already done by the terms_of_interest step
       filter(n > min.annotations,                                ## only show LION-term with 2 or more molecules, this is still important
              q.value_median < q.value.cutoff,
              LION_ID != "all") %>%                 ## remove LION term 'all'
+
+    if(dim(enrichment_analysis)[1] < 1){
+      stop("Not enough enriched terms to visualize")
+    }
+
+    enrichment_plot <-
+      enrichment_analysis %>%
       {ggplot(data = .,
               aes(x = reorder(LION_name, ES),
                   y = ES,
@@ -712,17 +718,22 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
       enrichment_analysis %>% ungroup() %>% group_by(bootstrap) %>%
       mutate(q.value = p.adjust(p = p.value, method = "fdr"))
 
-
-
-    enrichment_plot <-
-      enrichment_analysis %>%
+    enrichment_analysis <-
+    enrichment_analysis %>%
       ### here now LION-terms are not filtered by grepl and the names, that's already done by the terms_of_interest step
       filter(n > min.annotations,                                ## only show LION-term with 2 or more molecules, this is still important
              q.value_median < q.value.cutoff,
              LION_ID != "all") %>%                 ## remove LION term 'all'
       group_by(LION_ID) %>%
       mutate(ES = median(ES, na.rm = T),
-             up_down = factor(ifelse(sign(ES)>0, "UP","DOWN"), levels = c("UP","DOWN"))) %>%
+             up_down = factor(ifelse(sign(ES)>0, "UP","DOWN"), levels = c("UP","DOWN")))
+
+    if(dim(enrichment_analysis)[1] < 1){
+      stop("Not enough enriched terms to visualize")
+    }
+
+    enrichment_plot <-
+      enrichment_analysis  %>%
       {ggplot(data = .,
               aes(x = reorder(LION_name, desc(-log(`q.value`, base = 10))),
                   y = -log(`q.value`, base = 10)
