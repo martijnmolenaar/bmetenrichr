@@ -253,8 +253,11 @@ initEnrichment <- function(scmatrix,
 
     ## when vector of moceular formulas is provided, generate list with molecular names
 
-    annotation_formulas <- gsub("\\..+$","",annotations)   ## remove adduct
-    annotation_formulas_adduct <- annotations
+    ## change + or - adduct into .
+    annotation_formulas_adduct <- gsub("\\+|\\-",".",annotations)
+
+    annotation_formulas <- gsub("\\..+$","",annotation_formulas_adduct)   ## remove adduct
+
     annotation_adduct <- gsub("^.+\\.","",annotation_formulas_adduct)
 
     cat("\nParsing isomers...\n")
