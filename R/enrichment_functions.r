@@ -662,13 +662,15 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
   ## remove NAs
   enrichment_analysis <- enrichment_analysis %>% filter(!is.na(p.value), !is.na(ES))
 
+
   ## filter terms with lower presence than bootstrap.fraction.cutoff
   enrichment_analysis <-
     enrichment_analysis %>%
     group_by(LION_ID) %>%
-    mutate(fraction = length(LION_ID) / object$enrichment_analysis$n) %>%
-    filter(n > bootstrap.fraction.cutoff)
-
+    mutate(total_bootstrap = length(bootstrap),
+           fraction = total_bootstrap / object$enrichment_analysis$n) %>%
+    ungroup() %>%
+    filter(fraction > bootstrap.fraction.cutoff)
 
   enrichment_analysis <-
     enrichment_analysis %>% group_by(LION_ID) %>%
@@ -682,7 +684,7 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
   enrichment_analysis <-
     enrichment_analysis %>% group_by(LION_ID) %>%
     mutate(p.value_median = median(p.value, na.rm = T),
-           q.value_median = p.adjust(p.value, method = "fdr"))
+           q.value_median = median(p.adjust(p.value, method = "fdr"), na.rm = T))
 
   switch(by.statistic, 'ES' = {
 
@@ -856,12 +858,13 @@ enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cuto
   enrichment_analysis <- enrichment_analysis %>% filter(!is.na(p.value), !is.na(ES))
 
 
+
   ## filter terms with lower presence than bootstrap.fraction.cutoff
   enrichment_analysis <-
     enrichment_analysis %>%
     group_by(LION_ID) %>%
     mutate(fraction = length(LION_ID) / object$enrichment_analysis$n) %>%
-    filter(n > bootstrap.fraction.cutoff)
+    filter(fraction > bootstrap.fraction.cutoff)
 
 
   enrichment_analysis <-
@@ -874,19 +877,15 @@ enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cuto
               p.value_median = median(p.value, na.rm = T),
               p.value_sd = sd(p.value, na.rm = T),
               q.value_median = median(q.value, na.rm = T),
-              q.value_sd = sd(q.value, na.rm = T))
+              q.value_sd = sd(q.value, na.rm = T),
+              fraction.bootstrap.presence = median(fraction, na.rm = T)) %>%
+    arrange(q.value_median)
 
-  enrichment_analysis <-
-      enrichment_analysis %>% mutate(
-        LION_name = factor(
-          LION_name,
-          levels = enrichment_analysis %>% arrange(ES_median) %>% pull(LION_name)
-        ))
 
   enrichment_analysis <-
     enrichment_analysis %>%
     ### here now LION-terms are not filtered by grepl and the names, that's already done by the terms_of_interest step
-    filter(n > min.annotations,                                ## only show LION-term with 2 or more molecules, this is still important
+    filter(n > min.annotations,                  ## only show LION-term with 2 or more molecules, this is still important
            q.value_median < q.value.cutoff,
            LION_ID != "all"  )   %>%             ## remove LION term 'all')
     ungroup() %>% as.data.frame
