@@ -272,7 +272,7 @@ initEnrichment <- function(scmatrix,
     stop("annotations not in the right format")
   }
 
-   if(isobars & pathway == "LION"){
+   if(isobars & pathway[[1]][1] == "LION"){
 
 
      cat("Parsing potential isobars...\n\n")
