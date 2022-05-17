@@ -343,7 +343,7 @@ initEnrichment <- function(scmatrix,
    }
 
 
-  if(termsOfInterest == "selection" & pathway == "LION"){
+  if(termsOfInterest == "selection" & pathway[[1]][1] == "LION"){
 
     ## filter pathway_list by terms of interest
     # termsSelection <- read.csv(file = 'data-raw/LION_selection.csv')
