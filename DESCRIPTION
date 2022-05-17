@@ -1,6 +1,6 @@
 Package: bmetenrichr
 Title: metabolite set enrichment analysis with bootstrapping
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: 
     person("Martijn", "Molenaar", role = "cre", email = "m.r.molenaar@protonmail.com",
            comment = c(ORCID = "0000-0001-5221-608X"))
