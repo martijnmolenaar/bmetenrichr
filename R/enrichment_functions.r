@@ -686,6 +686,7 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
     mutate(p.value_median = median(p.value, na.rm = T),
            q.value_median = median(p.adjust(p.value, method = "fdr"), na.rm = T))
 
+
   switch(by.statistic, 'ES' = {
 
     enrichment_analysis <-
@@ -693,7 +694,7 @@ plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutof
       ### here now LION-terms are not filtered by grepl and the names, that's already done by the terms_of_interest step
       filter(n > min.annotations,                                ## only show LION-term with 2 or more molecules, this is still important
              q.value_median < q.value.cutoff,
-             LION_ID != "all") %>%                 ## remove LION term 'all'
+             LION_ID != "all")                 ## remove LION term 'all'
 
     if(dim(enrichment_analysis)[1] < 1){
       stop("Not enough enriched terms to visualize")

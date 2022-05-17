@@ -59,7 +59,7 @@ myTestRun <- calcEnrichment(myTestRun, n = 100)
 
 ## ----fig.height=4.5, fig.width=8, warning=FALSE-------------------------------
 
-plotEnrichment(myTestRun, min.annotations = 5, q.value.cutoff = .05, by.statistic = "ES")
+plotEnrichment(myTestRun, min.annotations = 5, q.value.cutoff = .1, by.statistic = "ES")
 
 ## ----fig.height=4.5, fig.width=8, warning=FALSE-------------------------------
 
