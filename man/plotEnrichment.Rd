@@ -13,6 +13,8 @@ plotEnrichment(object, ...)
 
 \item{q.value.cutoff}{A numeric between 0 and 1. Only terms with q-values lower than this value will be displayed.}
 
+\item{bootstrap.fraction.cutoff}{A numeric between 0 and 1 (default = 0.5), indicating the minimal fraction that the metabolite set is present in all bootstrap iterations.}
+
 \item{plotIDs}{A logical indicating whether term IDs should be displayed.}
 
 \item{by.statistic}{A character indicating how the x-axis will be arranged.

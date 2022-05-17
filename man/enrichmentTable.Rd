@@ -12,6 +12,8 @@ enrichmentTable(object, ...)
 \item{min.annotations}{An integer describing the minimal number of annotations each term should include (default = 2).}
 
 \item{q.value.cutoff}{A numeric between 0 and 1. Only terms with q-values lower than this value will be displayed (default = 0.5).}
+
+\item{bootstrap.fraction.cutoff}{A numeric between 0 and 1 (default = 0.5), indicating the minimal fraction that the metabolite set is present in all bootstrap iterations.}
 }
 \value{
 A data.frame

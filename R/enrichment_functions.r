@@ -625,6 +625,7 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
     object$LUT$name[match(enrichment_analysis$LION_ID, object$LUT$ID)]
 
   object$enrichment_analysis <- list(table = enrichment_analysis,
+                                     n = n,
                                      comparison = object$rankings$comparison)
 
   return(object)
@@ -636,6 +637,7 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
 #' @param object A bmetenrichr object after enrichment analysis.
 #' @param min.annotations An integer describing the minimal number of annotations each term should include
 #' @param q.value.cutoff A numeric between 0 and 1. Only terms with q-values lower than this value will be displayed.
+#' @param bootstrap.fraction.cutoff A numeric between 0 and 1 (default = 0.5), indicating the minimal fraction that the metabolite set is present in all bootstrap iterations.
 #' @param plotIDs A logical indicating whether term IDs should be displayed.
 #' @param by.statistic A character indicating how the x-axis will be arranged.
 #' Can be either 'ES' (enrichment score) or 'q.value' (default).
@@ -652,11 +654,21 @@ plotEnrichment <- function (object, ...) {
 
 
 #' @export
-plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.1, plotIDs = FALSE, by.statistic = 'q.value'){
+plotEnrichment.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.1, bootstrap.fraction.cutoff = .5,plotIDs = FALSE, by.statistic = 'q.value'){
   options(dplyr.summarise.inform = FALSE)
 
   enrichment_analysis <- object$enrichment_analysis$table
+
+  ## remove NAs
   enrichment_analysis <- enrichment_analysis %>% filter(!is.na(p.value), !is.na(ES))
+
+  ## filter terms with lower presence than bootstrap.fraction.cutoff
+  enrichment_analysis <-
+    enrichment_analysis %>%
+    group_by(LION_ID) %>%
+    mutate(fraction = length(LION_ID) / object$enrichment_analysis$n) %>%
+    filter(n > bootstrap.fraction.cutoff)
+
 
   enrichment_analysis <-
     enrichment_analysis %>% group_by(LION_ID) %>%
@@ -820,6 +832,7 @@ setConditions.bmetenrich <- function(object, condition.x = NULL, condition.y = N
 #' @param object A bmetenrichr object after enrichment analysis.
 #' @param min.annotations An integer describing the minimal number of annotations each term should include (default = 2).
 #' @param q.value.cutoff A numeric between 0 and 1. Only terms with q-values lower than this value will be displayed (default = 0.5).
+#' @param bootstrap.fraction.cutoff A numeric between 0 and 1 (default = 0.5), indicating the minimal fraction that the metabolite set is present in all bootstrap iterations.
 #'
 #' @return A data.frame
 #' @examples
@@ -833,10 +846,22 @@ enrichmentTable <- function (object, ...) {
 
 
 #' @export
-enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.5){
+enrichmentTable.bmetenrich <- function(object, min.annotations = 2, q.value.cutoff = 0.5, bootstrap.fraction.cutoff = 0.5){
   options(dplyr.summarise.inform = FALSE)
 
   enrichment_analysis <- object$enrichment_analysis$table
+
+
+  ## remove NAs
+  enrichment_analysis <- enrichment_analysis %>% filter(!is.na(p.value), !is.na(ES))
+
+
+  ## filter terms with lower presence than bootstrap.fraction.cutoff
+  enrichment_analysis <-
+    enrichment_analysis %>%
+    group_by(LION_ID) %>%
+    mutate(fraction = length(LION_ID) / object$enrichment_analysis$n) %>%
+    filter(n > bootstrap.fraction.cutoff)
 
 
   enrichment_analysis <-
