@@ -236,6 +236,7 @@ initEnrichment <- function(scmatrix,
     if (is.list(pathway)) {
       ## pathway is a list
       pathway_list <- pathway
+      pathway_list$all <- unique(unlist(pathway_list))
       ## make an *ad-hoc* LUT
       LUT <- data.frame(ID = names(pathway_list),
                         name = names(pathway_list))
@@ -353,9 +354,9 @@ initEnrichment <- function(scmatrix,
     termsSelection <- names(pathway_list)
     ## no filtering required
 
-  } else if(termsOfInterest == "selection" & pathway != "LION"){
+  } else if(termsOfInterest == "selection" & pathway[[1]][1] != "LION"){
 
-    stop("termsOfInterest = 'selection' is only valid for pathway = 'LION'")
+    stop("Setting termsOfInterest = 'selection' is only valid for pathway = 'LION'\nUse termsOfInterest = 'all' instead")
   } else {
 
     pathway_list <- pathway_list[termsOfInterest]
@@ -559,17 +560,17 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
   cat("Match to pathway...")
   cat("\n")
 
-  fraction_matched_to_LION <-
-    rowMeans(
-      pbapply::pbsapply(bootstrapped_sublist, function(i) {
-        i %in% object$pathway_list$all
-      })
-    )
+  fraction_matched_to_pathway <-
+      rowMeans(
+        pbapply::pbsapply(bootstrapped_sublist, function(i) {
+          i %in% object$pathway_list$all
+        })
+      )
 
 
   message(paste0(
     format(
-      weighted.mean(fraction_matched_to_LION) * 100,
+      weighted.mean(fraction_matched_to_pathway) * 100,
       digits = 4,
       nsmall = 1
     ),
@@ -626,6 +627,7 @@ calcEnrichment.bmetenrich <- function(object, n = 50){
 
   object$enrichment_analysis <- list(table = enrichment_analysis,
                                      n = n,
+                                     fraction_matched_to_pathway = fraction_matched_to_pathway,
                                      comparison = object$rankings$comparison)
 
   return(object)
