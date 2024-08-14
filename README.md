@@ -6,3 +6,6 @@ This R-package aims to perform metabolite set enrichment analysis (MSEA) on sing
 In contrast to bulk-metabolomics, metabolite annotation is often more ambiguous with fully resolved molecular structures.
 That means, annotations are vectors of isomeric (and/or isobaric) molecules, complicating downstream MSEA. This package uses a 
 boostrapping approach by performing enrichment analyses many times with random sampling of the isomers/isobars.
+
+**This version is now obsolete**. Please find the latest version of the pacakge (now named S2IsoMEr) [here](https://github.com/Bisho2122/S2IsoMEr)
+
